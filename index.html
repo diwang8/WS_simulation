@@ -586,11 +586,20 @@
             // 显示选中的标签页内容
             document.getElementById(tabId).classList.add("active");
             
+            
             // 设置选中标签的活动状态
             var activeTab = Array.from(tabs).find(tab => tab.getAttribute("onclick").includes(tabId));
             if (activeTab) {
                 activeTab.classList.add("active");
             }
+
+            setTimeout(() => {
+                if (tabId === 'curves-tab') {
+                    Plotly.Plots.resize(document.getElementById('curves-chart'));
+                } else if (tabId === 'probability-tab') {
+                    Plotly.Plots.resize(document.getElementById('probability-chart'));
+                }
+            }, 50);
         }
 
         // 三角分布采样函数
