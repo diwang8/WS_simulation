@@ -1052,7 +1052,17 @@
                         grid: { rows: 1, columns: 1 }
                     };
                     setTimeout(() => {
-                        Plotly.newPlot('curves-chart', curvesData, curvesLayout, { responsive: true });
+                        const curvesContainer = document.getElementById('curves-chart').parentElement;
+                        const width = curvesContainer.clientWidth;
+                        const height = width * 0.66;
+
+                        const layout = {
+                            ...curvesLayout,
+                            width: width,
+                            height: height
+                        };
+
+                        Plotly.newPlot('curves-chart', curvesData, layout, { responsive: true });
                     }, 100);
                     
                     // 绘制目标概率图
@@ -1077,7 +1087,17 @@
                     };
 
                     setTimeout(() => {
-                        Plotly.newPlot('probability-chart', probData, probLayout, { responsive: true });
+                        const probContainer = document.getElementById('probability-chart').parentElement;
+                        const width = probContainer.clientWidth;
+                        const height = width * 0.66;
+
+                        const layout = {
+                            ...probLayout,
+                            width: width,
+                            height: height
+                        };
+
+                        Plotly.newPlot('probability-chart', probData, layout, { responsive: true });
                     }, 100);
                     
                     // 更新统计数据
