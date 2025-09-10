@@ -1052,7 +1052,7 @@
                         grid: { rows: 1, columns: 1 }
                     };
                     
-                    Plotly.newPlot('curves-chart', curvesData, curvesLayout);
+                    Plotly.newPlot('curves-chart', curvesData, curvesLayout, { responsive: true });
                     
                     // 绘制目标概率图
                     const probData = [{
@@ -1075,7 +1075,7 @@
                         }
                     };
                     
-                    Plotly.newPlot('probability-chart', probData, probLayout);
+                    Plotly.newPlot('probability-chart', probData, probLayout, { responsive: true });
                     
                     // 更新统计数据
                     updateStats(stats);
