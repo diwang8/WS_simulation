@@ -100,7 +100,7 @@
             margin-top: 30px;
         }
         .chart-container {
-            width: 100%;
+            width: 60%;
             aspect-ratio: 3 / 2;
             max-width: 100%;
         }
@@ -1054,7 +1054,7 @@
                     setTimeout(() => {
                         const curvesContainer = document.getElementById('curves-chart').parentElement;
                         const width = curvesContainer.clientWidth;
-                        const height = width * 0.66;
+                        const height = width;
 
                         const layout = {
                             ...curvesLayout,
@@ -1063,7 +1063,7 @@
                         };
 
                         Plotly.newPlot('curves-chart', curvesData, layout, { responsive: true });
-                    }, 100);
+                    }, 1000);
                     
                     // 绘制目标概率图
                     const probData = [{
@@ -1089,7 +1089,7 @@
                     setTimeout(() => {
                         const probContainer = document.getElementById('probability-chart').parentElement;
                         const width = probContainer.clientWidth;
-                        const height = width * 0.66;
+                        const height = width;
 
                         const layout = {
                             ...probLayout,
@@ -1098,7 +1098,7 @@
                         };
 
                         Plotly.newPlot('probability-chart', probData, layout, { responsive: true });
-                    }, 100);
+                    }, 1000);
                     
                     // 更新统计数据
                     updateStats(stats);
