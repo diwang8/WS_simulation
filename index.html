@@ -101,8 +101,7 @@
         }
         .chart-container {
             width: 100%;
-            aspect-ratio: 3 / 2;
-            max-width: 350px;
+            max-width: 600px;
         }
         .stats-container {
             background-color: #f9f9f9;
@@ -988,7 +987,7 @@
         function resizeAndRedrawPlotlyChart(chartId, data, layoutBase) {
             const container = document.getElementById(chartId).parentElement;
             const width = container.clientWidth;
-            const height = width * 0.66;
+            const height = max(400px, width * 0.66);
 
             const layout = {
                 ...layoutBase,
