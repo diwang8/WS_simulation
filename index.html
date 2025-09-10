@@ -1050,13 +1050,6 @@
                         showlegend: false,
                         grid: { rows: 1, columns: 1 }
                     };
-
-                    const container = document.getElementById('curves-chart').parentElement;
-                    const width = container.clientWidth;
-                    const height = width * 0.66;
-
-                    curvesLayout.width = width;
-                    curvesLayout.height = height;
                 
                     setTimeout(() => {
                         Plotly.newPlot('curves-chart', curvesData, curvesLayout, { responsive: true });
@@ -1084,13 +1077,6 @@
                         width: probWidth,
                         height: probHeight
                     };
-                    
-                    const probContainer = document.getElementById('probability-chart').parentElement;
-                    const probWidth = probContainer.clientWidth;
-                    const probHeight = probWidth * 0.66;
-
-                    probLayout.width = probWidth;
-                    probLayout.Height = probHeight;
                     
                     setTimeout(() => {
                         Plotly.newPlot('probability-chart', probData, probLayout, { responsive: true });
