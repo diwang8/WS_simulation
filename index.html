@@ -1043,19 +1043,20 @@
                         });
                     }
                     
-                    const container = document.getElementById('curves-chart').parentElement;
-                    const width = container.clientWidth;
-                    const height = width * 0.66;
-                    
                     const curvesLayout = {
                         title: '模拟收益曲线',
                         xaxis: { title: '系列编号' },
                         yaxis: { title: '累计盈亏' },
                         showlegend: false,
                         grid: { rows: 1, columns: 1 }
-                        width: width,
-                        height: height
                     };
+
+                    const container = document.getElementById('curves-chart').parentElement;
+                    const width = container.clientWidth;
+                    const height = width * 0.66;
+
+                    curvesLayout.width = width;
+                    curvesLayout.height = height;
                 
                     setTimeout(() => {
                         Plotly.newPlot('curves-chart', curvesData, curvesLayout, { responsive: true });
@@ -1070,9 +1071,6 @@
                         marker: { size: 8 }
                     }];
 
-                    const probContainer = document.getElementById('probability-chart').parentElement;
-                    const probWidth = probContainer.clientWidth;
-                    const probHeight = probWidth * 0.66;
                     const probLayout = {
                         title: `不同年数下达到目标收益的概率变化`,
                         xaxis: { 
@@ -1086,7 +1084,14 @@
                         width: probWidth,
                         height: probHeight
                     };
+                    
+                    const probContainer = document.getElementById('probability-chart').parentElement;
+                    const probWidth = probContainer.clientWidth;
+                    const probHeight = probWidth * 0.66;
 
+                    probLayout.width = probWidth;
+                    probLayout.Height = probHeight;
+                    
                     setTimeout(() => {
                         Plotly.newPlot('probability-chart', probData, probLayout, { responsive: true });
                     }, 100);
