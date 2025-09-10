@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WS模拟</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@11.8.0/lib/browser/math.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        body {
+            font-family: 'SimHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .form-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            margin-left: 5px;
+        }
+        .tooltip .tooltiptext {
+            visibility: visible;
+            width: 300px;
+            background-color: #555;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 9999;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-25%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-weight: normal;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+            z-index: 9999;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 20px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+        .stats-container {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .stats-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .stat-item {
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .conclusion {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #3498db;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .parameter-section {
+            margin-bottom: 30px;
+        }
+        .parameter-section h3 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: #2c3e50;
+        }
+        .collapsible {
+            background-color: #f1f1f1;
+            color: #444;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .active-section, .collapsible:hover {
+            background-color: #e8f4f8;
+        }
+        .content {
+            padding: 0 18px;
+            display: none;
+            overflow: visible;
+            background-color: #f9f9f9;
+            border-radius: 0 0 4px 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>收益曲线模拟系统</h1>
+        
+        <button type="button" class="collapsible">基本参数设置</button>
+        <div class="content">
+            <div class="parameter-section">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="n">模拟曲线数量 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">模拟多少条收益曲线，数量越多，代表模拟次数越多，模拟结果区间越可靠，但计算时间也越长，默认50。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="n" value="50" min="1" max="1000">
+                    </div>
+                    <div class="form-group">
+                        <label for="series_n">每条曲线的系列数量 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">每条曲线模拟多少个系列，相当于每次模拟我们贸易的系列数量，默认50。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="series_n" value="50" min="1" max="1000">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="collapsible">系列类型概率设置</button>
+        <div class="content">
+            <div class="parameter-section">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="a">爆款概率 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">每个系列是爆款系列的概率，默认为1/12。</span>
+                            </span>
+                        </label>
+                        <input type="text" id="a" value="1/12">
+                    </div>
+                    <div class="form-group">
+                        <label for="b">一般款概率 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">每个系列是一般款的概率，默认为8/12。剩余概率为冷门款。</span>
+                            </span>
+                        </label>
+                        <input type="text" id="b" value="8/12">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="collapsible">进货数量设置</button>
+        <div class="content">
+            <div class="parameter-section">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="base_purchase_a">爆款基础进货量 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">爆款系列的基础进货箱数，默认为45箱。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="base_purchase_a" value="45" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="purchase_b">一般款进货量 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">一般款系列的进货箱数，默认为10箱。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="purchase_b" value="10" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="purchase_c">冷门款进货量 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">冷门款系列的进货箱数，默认为10箱。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="purchase_c" value="10" min="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="collapsible">价格区间设置</button>
+        <div class="content">
+            <div class="parameter-section">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="min_pur_price">进货价格下限 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">进货价格的最小值，默认为6250元/箱（已计算需要将20%的货留与进货渠道），。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="min_pur_price" value="6250" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="max_pur_price">进货价格上限 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">进货价格的最大值，默认为6875元/箱（已计算需要将20%的货留与进货渠道）。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="max_pur_price" value="6875" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="min_a_market">爆款市场价下限 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">爆款系列市场价的最小值，默认为8000元/箱。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="min_a_market" value="8000" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="max_a_market">爆款市场价上限 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">爆款系列市场价的最大值，默认为11000元/箱。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="max_a_market" value="11000" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="min_b_market">一般款市场价下限 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">一般款系列市场价的最小值，默认为6500元/箱。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="min_b_market" value="6500" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="max_b_market">一般款市场价上限 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">一般款系列市场价的最大值，默认为7500元/箱。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="max_b_market" value="7500" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="min_c_market">冷门款市场价下限 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">冷门款系列市场价的最小值，默认为4600元/箱。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="min_c_market" value="4600" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="max_c_market">冷门款市场价上限 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">冷门款系列市场价的最大值，默认为5000元/箱。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="max_c_market" value="5000" min="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="collapsible">销售渠道设置（各渠道比例为初始比例，模拟过程中会自动扩大高收益渠道的销货比例）</button>
+        <div class="content">
+            <div class="parameter-section">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="bg_diff_min">店铺渠道折价下限 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">店铺渠道销售价格比市场价低的最小值，默认为400元/箱，即（市场价-400）卖给店铺。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="bg_diff_min" value="400" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="bg_diff_max">店铺渠道折价上限 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">店铺渠道销售价格比市场价低的最大值，默认为500元/箱，即（市场价-500）卖给店铺。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="bg_diff_max" value="500" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="bg_percent">店铺渠道初始比例 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">初始时通过店铺渠道销售的比例，默认为0.15，即一个系列中15%的货以此法销售。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="bg_percent" value="0.15" min="0" max="1" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="ys_float">咸鱼预售渠道浮动比例 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">咸鱼预售渠道销售价格相对市场价的浮动比例，默认为0.15，即以市场价±15%售出。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="ys_float" value="0.15" min="0" max="1" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="ys_percent">咸鱼预售渠道初始比例 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">初始时通过咸鱼预售渠道销售的箱数比例，默认为0.10，即一个系列中10%的货以此法销售。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="ys_percent" value="0.10" min="0" max="1" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="xy_percent">咸鱼现货渠道初始比例 ———— 默认以市场价销售 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">初始时通过咸鱼现货渠道销售的箱数比例，默认为0.50，即一个系列中10%的货以此法销售。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="xy_percent" value="0.50" min="0" max="1" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="zb_percent">直播渠道初始比例
+                            <span class="tooltip">?
+                                <span class="tooltiptext">初始时通过直播渠道销售的箱数比例，默认为0.25，即一个系列中25%的货以此法销售。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="zb_percent" value="0.25" min="0" max="1" step="0.01">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="collapsible">直播渠道设置</button>
+        <div class="content">
+            <div class="parameter-section">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="num_he">每箱盒数（直播） 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">每箱包含的盒子数量，默认为24盒/箱。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="num_he" value="24" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="zb_ratio_min">常规直播价格比例下
+                            <span class="tooltip">?
+                                <span class="tooltiptext">常规直播渠道销售价格相对市场价的大约范围，默认为31/30≈1.033，即以市场价+3.3%左右售出。</span>
+                            </span>
+                        </label>
+                        <input type="text" id="zb_ratio_min" value="31/30">
+                    </div>
+                    <div class="form-group">
+                        <label for="zb_ratio_max">玩法直播价格 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">玩法直播渠道销售价格相对市场价的最大，默认为1.35，即收入为市场价的135%上下浮动。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="zb_ratio_max" value="1.35" min="1" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="zb_fc">直播分成后到手比例 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">直播渠道销售后实际到手的比例（扣除直播分成等），默认为0.8，即直播收入的80%为我方实际收入。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="zb_fc" value="0.8" min="0" max="1" step="0.01">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="collapsible">目标收益设置</button>
+        <div class="content">
+            <div class="parameter-section">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="target">目标累计收益 
+                            <span class="tooltip">?
+                                <span class="tooltiptext">用于计算不同时间点达到目标收益的概率，默认目标收益为200000元。</span>
+                            </span>
+                        </label>
+                        <input type="number" id="target" value="200000" min="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button id="simulate-btn" onclick="runSimulation()">运行模拟</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>模拟计算中，请稍候...</p>
+        </div>
+
+        <div class="results" id="results" style="display: none;">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('curves-tab')">收益曲线</div>
+                <div class="tab" onclick="showTab('probability-tab')">目标概率</div>
+                <div class="tab" onclick="showTab('stats-tab')">统计分析</div>
+                <div class="tab" onclick="showTab('conclusion-tab')">结论建议</div>
+            </div>
+
+            <div id="curves-tab" class="tab-content active">
+                <div class="chart-container">
+                    <div id="curves-chart"></div>
+                </div>
+            </div>
+
+            <div id="probability-tab" class="tab-content">
+                <div class="chart-container">
+                    <div id="probability-chart"></div>
+                </div>
+            </div>
+
+            <div id="stats-tab" class="tab-content">
+                <div class="stats-container">
+                    <div class="stats-title">总体统计</div>
+                    <div class="stats-grid" id="overall-stats">
+                        <!-- 总体统计数据将在这里动态生成 -->
+                    </div>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stats-title">系列类型统计</div>
+                    <div class="stats-grid" id="series-type-stats">
+                        <!-- 系列类型统计数据将在这里动态生成 -->
+                    </div>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stats-title">销售渠道统计</div>
+                    <div class="stats-grid" id="channel-stats">
+                        <!-- 销售渠道统计数据将在这里动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="conclusion-tab" class="tab-content">
+                <div class="conclusion" id="conclusion">
+                    <!-- 结论和建议将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 折叠面板功能
+        var coll = document.getElementsByClassName("collapsible");
+        for (var i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active-section");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+
+        // 默认展开第一个面板
+        document.getElementsByClassName("collapsible")[0].click();
+
+        // 标签页切换功能
+        function showTab(tabId) {
+            // 隐藏所有标签页内容
+            var tabContents = document.getElementsByClassName("tab-content");
+            for (var i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            
+            // 移除所有标签的活动状态
+            var tabs = document.getElementsByClassName("tab");
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove("active");
+            }
+            
+            // 显示选中的标签页内容
+            document.getElementById(tabId).classList.add("active");
+            
+            // 设置选中标签的活动状态
+            var activeTab = Array.from(tabs).find(tab => tab.getAttribute("onclick").includes(tabId));
+            if (activeTab) {
+                activeTab.classList.add("active");
+            }
+        }
+
+        // 三角分布采样函数
+        function triangularSample(low, high) {
+            const mid = (low + high) / 2;
+            const u = Math.random();
+            const f = (mid - low) / (high - low);
+            
+            if (u < f) {
+                return low + Math.sqrt(u * (high - low) * (mid - low));
+            } else {
+                return high - Math.sqrt((1 - u) * (high - low) * (high - mid));
+            }
+        }
+
+        // 模拟收益曲线函数
+        function simulateProfitCurves(params) {
+            const {
+                n, series_n, a, b, base_purchase_a, purchase_b, purchase_c,
+                min_pur_price, max_pur_price, min_a_market, max_a_market,
+                min_b_market, max_b_market, min_c_market, max_c_market,
+                bg_diff_min, bg_diff_max, bg_percent, ys_float, ys_percent,
+                xy_percent, zb_percent, num_he, zb_ratio_min, zb_ratio_max, zb_fc
+            } = params;
+
+            // 选择系列类型函数
+            function chooseSeriesType() {
+                const r = Math.random();
+                if (r < a) {
+                    return '爆款';
+                } else if (r < a + b) {
+                    return '一般';
+                } else {
+                    return '冷门';
+                }
+            }
+
+            // 获取市场价格函数
+            function getMarketPrice(seriesType) {
+                if (seriesType === '爆款') {
+                    return triangularSample(min_a_market, max_a_market);
+                } else if (seriesType === '一般') {
+                    return triangularSample(min_b_market, max_b_market);
+                } else {
+                    return triangularSample(min_c_market, max_c_market);
+                }
+            }
+
+            // 模拟销售函数
+            function simulateSales(purchasePrice, marketPrice, numBoxes, channelWeights) {
+                const profits = [];
+                const channelStats = { bg: 0, ys: 0, xy: 0, zb: 0 };
+                const channelRevenue = { bg: 0, ys: 0, xy: 0, zb: 0 };
+
+                for (let i = 0; i < numBoxes; i++) {
+                    // 选择销售渠道
+                    const r = Math.random();
+                    let channel;
+                    let cumulativeWeight = 0;
+                    
+                    for (let j = 0; j < channelWeights.length; j++) {
+                        cumulativeWeight += channelWeights[j];
+                        if (r < cumulativeWeight) {
+                            channel = ['bg', 'ys', 'xy', 'zb'][j];
+                            break;
+                        }
+                    }
+                    
+                    channelStats[channel]++;
+
+                    let profit = 0;
+                    
+                    if (channel === 'bg') {
+                        const discount = triangularSample(bg_diff_min, bg_diff_max);
+                        const sellPrice = marketPrice - discount;
+                        profit = sellPrice - purchasePrice;
+                        channelRevenue.bg += sellPrice;
+                    } else if (channel === 'ys') {
+                        const floatRange = ys_float * marketPrice;
+                        const sellPrice = triangularSample(marketPrice - floatRange, marketPrice + floatRange);
+                        profit = sellPrice - purchasePrice;
+                        channelRevenue.ys += sellPrice;
+                    } else if (channel === 'xy') {
+                        const sellPrice = marketPrice;
+                        profit = sellPrice - purchasePrice;
+                        channelRevenue.xy += sellPrice;
+                    } else if (channel === 'zb') {
+                        // 直播开卡逻辑
+                        const boxCost = purchasePrice;
+                        const boxMarket = marketPrice;
+                        const boxFc = zb_fc;
+                        const boxHePrice = boxMarket / num_he;
+                        const boxCostPerHe = boxCost / num_he;
+                        const luckyIndex = Math.floor(Math.random() * num_he);
+
+                        let boxProfit = 0;
+                        for (let i = 0; i < num_he; i++) {
+                            if (i < luckyIndex) {
+                                // 正常盒子，按市场价出售
+                                const revenue = boxHePrice * (zb_ratio_min + Math.random() * (zb_ratio_max - zb_ratio_min));
+                                boxProfit += revenue * boxFc;
+                                channelRevenue.zb += revenue * boxFc;
+                            } else if (i === luckyIndex) {
+                                // 贵卡盒，咸鱼预售出售
+                                const revenue = boxHePrice * (zb_ratio_min + Math.random() * (zb_ratio_max - zb_ratio_min));
+                                boxProfit += revenue * boxFc;
+                                channelRevenue.zb += revenue * boxFc;
+                            } else {
+                                // 之后盒子按成本价销售，不盈利也不亏损
+                                const costRecovery = boxCostPerHe;
+                                boxProfit += costRecovery;
+                                channelRevenue.zb += costRecovery;
+                            }
+                        }
+
+                        profit = boxProfit - boxCost;
+                    }
+
+                    profits.push(profit);
+                }
+
+                const totalProfit = profits.reduce((sum, profit) => sum + profit, 0);
+                
+                // 计算各渠道收益率
+                const channelYields = {};
+                for (const channel in channelStats) {
+                    if (channelStats[channel] > 0) {
+                        channelYields[channel] = channelRevenue[channel] / (channelStats[channel] * purchasePrice);
+                    } else {
+                        channelYields[channel] = 0;
+                    }
+                }
+                
+                return {
+                    totalProfit,
+                    channelStats,
+                    channelRevenue,
+                    channelYields
+                };
+            }
+
+            const allCurves = [];
+            const allSeriesDetails = [];
+
+            for (let curveIndex = 0; curveIndex < n; curveIndex++) {
+                let cumulativeProfit = 0;
+                const curve = [];
+                const seriesDetails = [];
+                const channelTotalYield = { bg: 0, ys: 0, xy: 0, zb: 0 };
+                const channelTotalSales = { bg: 0, ys: 0, xy: 0, zb: 0 };
+
+                for (let i = 0; i < series_n; i++) {
+                    const seriesType = chooseSeriesType();
+
+                    // 动态爆款进货量调整
+                    let numBoxes;
+                    if (seriesType === '爆款') {
+                        // 统计前面冷门和一般系列的亏损总额
+                        const lossSum = seriesDetails
+                            .filter(s => ['一般', '冷门', '爆款'].includes(s.type) && s.profit < 0)
+                            .reduce((sum, s) => sum + s.profit, 0);
+
+                        // 获取历史爆款的总利润和总箱数
+                        const pastASeries = seriesDetails.filter(s => s.type === '爆款');
+                        const totalAProfit = pastASeries.reduce((sum, s) => sum + s.profit, 0);
+                        const totalABoxes = pastASeries.reduce((sum, s) => sum + s.numBoxes, 0);
+
+                        if (lossSum < 0) {
+                            let estimatedProfitPerBox;
+                            if (totalABoxes > 0) {
+                                estimatedProfitPerBox = totalAProfit / totalABoxes;
+                            } else {
+                                estimatedProfitPerBox = 3000;  // 初始估值（无历史爆款时）
+                            }
+
+                            if (estimatedProfitPerBox > 0) {
+                                numBoxes = Math.floor(Math.abs(lossSum) / estimatedProfitPerBox);
+                                numBoxes = base_purchase_a; // 使用固定值，与原代码一致
+                            } else {
+                                numBoxes = base_purchase_a;  // 历史爆款未盈利，仍进货默认数量
+                            }
+                        } else {
+                            numBoxes = base_purchase_a;  // 没有亏损时，仍进货默认数量
+                        }
+                    } else if (seriesType === '一般') {
+                        numBoxes = purchase_b;
+                    } else {
+                        numBoxes = purchase_c;
+                    }
+
+                    const purchasePrice = triangularSample(min_pur_price, max_pur_price);
+                    const marketPrice = getMarketPrice(seriesType);
+
+                    // 根据历史收益率动态调整销货权重
+                    let channelWeights;
+                    const totalYield = channelTotalYield.bg + channelTotalYield.ys + channelTotalYield.xy + channelTotalYield.zb;
+                    
+                    if (totalYield > 0) {
+                        const weights = [
+                            Math.max(channelTotalYield.bg, 0.01),
+                            Math.max(channelTotalYield.ys, 0.01),
+                            Math.max(channelTotalYield.xy, 0.01),
+                            Math.max(channelTotalYield.zb, 0.01)
+                        ];
+                        const total = weights.reduce((sum, w) => sum + w, 0);
+                        channelWeights = weights.map(w => w / total);
+                    } else {
+                        channelWeights = [bg_percent, ys_percent, xy_percent, zb_percent];
+                    }
+
+                    const { totalProfit, channelStats, channelRevenue, channelYields } = simulateSales(
+                        purchasePrice, marketPrice, numBoxes, channelWeights
+                    );
+
+                    cumulativeProfit += totalProfit;
+                    curve.push(cumulativeProfit);
+
+                    // 更新历史收益率
+                    for (const channel in channelStats) {
+                        channelTotalSales[channel] += channelStats[channel];
+                        if (channelStats[channel] > 0) {
+                            channelTotalYield[channel] += channelRevenue[channel] / (channelStats[channel] * purchasePrice);
+                        }
+                    }
+
+                    seriesDetails.push({
+                        seriesIndex: i + 1,
+                        type: seriesType,
+                        purchasePrice,
+                        marketPrice,
+                        numBoxes,
+                        profit: totalProfit,
+                        cumulativeProfit,
+                        channelStats,
+                        channelRevenue,
+                        channelYields
+                    });
+                }
+
+                allCurves.push(curve);
+                allSeriesDetails.push(seriesDetails);
+            }
+
+            return { allCurves, allSeriesDetails };
+        }
+
+        // 计算目标收益概率
+        function calculateTargetProbability(curves, target, maxSeries) {
+            const xYears = [];
+            const yProbs = [];
+
+            for (let nIn = 1; nIn <= maxSeries; nIn++) {
+                let successCount = 0;
+                for (const curve of curves) {
+                    if (curve.length >= nIn && curve[nIn - 1] >= target) {
+                        successCount++;
+                    }
+                }
+                const prob = successCount / curves.length;
+                xYears.push(nIn / 12);
+                yProbs.push(prob);
+            }
+
+            return { xYears, yProbs };
+        }
+
+        // 计算统计数据
+        function calculateStats(curves, seriesDetails) {
+            const stats = {
+                overall: {},
+                seriesType: {},
+                channel: {}
+            };
+
+            // 计算总体统计
+            const finalProfits = curves.map(curve => curve[curve.length - 1]);
+            stats.overall.avgFinalProfit = finalProfits.reduce((sum, profit) => sum + profit, 0) / finalProfits.length;
+            stats.overall.maxFinalProfit = Math.max(...finalProfits);
+            stats.overall.minFinalProfit = Math.min(...finalProfits);
+            stats.overall.profitablePercent = finalProfits.filter(profit => profit > 0).length / finalProfits.length * 100;
+
+            // 计算系列类型统计
+            const allSeries = seriesDetails.flat();
+            const seriesTypes = ['爆款', '一般', '冷门'];
+            
+            for (const type of seriesTypes) {
+                const typeData = allSeries.filter(series => series.type === type);
+                stats.seriesType[type] = {
+                    count: typeData.length,
+                    percent: typeData.length / allSeries.length * 100,
+                    avgProfit: typeData.reduce((sum, series) => sum + series.profit, 0) / typeData.length,
+                    totalProfit: typeData.reduce((sum, series) => sum + series.profit, 0)
+                };
+            }
+
+            // 计算销售渠道统计
+            const channels = ['bg', 'ys', 'xy', 'zb'];
+            const channelNames = {
+                'bg': '店铺渠道',
+                'ys': '咸鱼预售渠道',
+                'xy': '咸鱼现货渠道',
+                'zb': '直播渠道'
+            };
+            
+            // 初始化渠道统计
+            for (const channel of channels) {
+                stats.channel[channel] = {
+                    name: channelNames[channel],
+                    boxCount: 0,
+                    revenue: 0,
+                    profit: 0
+                };
+            }
+            
+            // 计算各渠道数据
+            for (const series of allSeries) {
+                for (const channel of channels) {
+                    stats.channel[channel].boxCount += series.channelStats[channel] || 0;
+                    stats.channel[channel].revenue += series.channelRevenue[channel] || 0;
+                }
+            }
+            
+            // 计算总箱数和总收入
+            const totalBoxes = Object.values(stats.channel).reduce((sum, channel) => sum + channel.boxCount, 0);
+            const totalRevenue = Object.values(stats.channel).reduce((sum, channel) => sum + channel.revenue, 0);
+            
+            // 计算各渠道占比和平均价格
+            for (const channel of channels) {
+                stats.channel[channel].boxPercent = stats.channel[channel].boxCount / totalBoxes * 100;
+                stats.channel[channel].revenuePercent = stats.channel[channel].revenue / totalRevenue * 100;
+                if (stats.channel[channel].boxCount > 0) {
+                    stats.channel[channel].avgPrice = stats.channel[channel].revenue / stats.channel[channel].boxCount;
+                } else {
+                    stats.channel[channel].avgPrice = 0;
+                }
+            }
+
+            return stats;
+        }
+
+        // 生成结论和建议
+        function generateConclusion(stats, params) {
+            let conclusion = '<h3>模拟结果分析</h3>';
+            
+            // 总体盈利情况
+            conclusion += `<p>在${params.n}次模拟中，平均最终累计盈利为<strong>${stats.overall.avgFinalProfit.toFixed(2)}元</strong>，`;
+            conclusion += `最高盈利为${stats.overall.maxFinalProfit.toFixed(2)}元，最低盈利为${stats.overall.minFinalProfit.toFixed(2)}元。`;
+            conclusion += `有${stats.overall.profitablePercent.toFixed(2)}%的模拟最终实现了盈利。</p>`;
+
+            
+            // 销售渠道分析
+            conclusion += '<h3>销售渠道分析</h3>';
+            conclusion += '<p>';
+            
+            // 找出最高收益率的渠道
+            const channels = Object.keys(stats.channel);
+            let bestChannel = channels[0];
+            for (let i = 1; i < channels.length; i++) {
+                if (stats.channel[channels[i]].avgPrice > stats.channel[bestChannel].avgPrice) {
+                    bestChannel = channels[i];
+                }
+            }
+            
+            conclusion += `最高平均售价的渠道是${stats.channel[bestChannel].name}，平均售价为${stats.channel[bestChannel].avgPrice.toFixed(2)}元/箱。`;
+            conclusion += `该渠道销售了${stats.channel[bestChannel].boxPercent.toFixed(2)}%的箱数，贡献了${stats.channel[bestChannel].revenuePercent.toFixed(2)}%的收入。`;
+            conclusion += '</p>';
+            
+            // 建议
+            conclusion += '<h3>经营建议</h3>';
+            conclusion += '<ul>';
+            
+            
+            // 渠道策略建议
+            conclusion += `<li>增加${stats.channel[bestChannel].name}的销售比例可能会提高整体盈利能力。</li>`;
+            
+            // 风险提示
+            if (stats.overall.profitablePercent < 70) {
+                conclusion += '<li>当前参数设置下盈利概率较低，建议调整参数以提高盈利稳定性。</li>';
+            }
+            
+            conclusion += '</ul>';
+            
+            return conclusion;
+        }
+
+        // 运行模拟
+        function runSimulation() {
+            // 显示加载动画
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            
+            // 延迟执行以允许UI更新
+            setTimeout(() => {
+                try {
+                    // 获取参数
+                    const params = {
+                        n: parseInt(document.getElementById('n').value),
+                        series_n: parseInt(document.getElementById('series_n').value),
+                        a: eval(document.getElementById('a').value),
+                        b: eval(document.getElementById('b').value),
+                        base_purchase_a: parseInt(document.getElementById('base_purchase_a').value),
+                        purchase_b: parseInt(document.getElementById('purchase_b').value),
+                        purchase_c: parseInt(document.getElementById('purchase_c').value),
+                        min_pur_price: parseFloat(document.getElementById('min_pur_price').value),
+                        max_pur_price: parseFloat(document.getElementById('max_pur_price').value),
+                        min_a_market: parseFloat(document.getElementById('min_a_market').value),
+                        max_a_market: parseFloat(document.getElementById('max_a_market').value),
+                        min_b_market: parseFloat(document.getElementById('min_b_market').value),
+                        max_b_market: parseFloat(document.getElementById('max_b_market').value),
+                        min_c_market: parseFloat(document.getElementById('min_c_market').value),
+                        max_c_market: parseFloat(document.getElementById('max_c_market').value),
+                        bg_diff_min: parseFloat(document.getElementById('bg_diff_min').value),
+                        bg_diff_max: parseFloat(document.getElementById('bg_diff_max').value),
+                        bg_percent: parseFloat(document.getElementById('bg_percent').value),
+                        ys_float: parseFloat(document.getElementById('ys_float').value),
+                        ys_percent: parseFloat(document.getElementById('ys_percent').value),
+                        xy_percent: parseFloat(document.getElementById('xy_percent').value),
+                        zb_percent: parseFloat(document.getElementById('zb_percent').value),
+                        num_he: parseInt(document.getElementById('num_he').value),
+                        zb_ratio_min: eval(document.getElementById('zb_ratio_min').value),
+                        zb_ratio_max: parseFloat(document.getElementById('zb_ratio_max').value),
+                        zb_fc: parseFloat(document.getElementById('zb_fc').value)
+                    };
+                    
+                    // 目标收益
+                    const target = parseFloat(document.getElementById('target').value);
+                    
+                    // 运行模拟
+                    const { allCurves, allSeriesDetails } = simulateProfitCurves(params);
+                    
+                    // 计算目标收益概率
+                    const { xYears, yProbs } = calculateTargetProbability(allCurves, target, params.series_n);
+                    
+                    // 计算统计数据
+                    const stats = calculateStats(allCurves, allSeriesDetails);
+                    
+                    // 生成结论
+                    const conclusion = generateConclusion(stats, params);
+                    
+                    // 绘制收益曲线图
+                    const curvesData = [];
+                    for (let i = 0; i < allCurves.length; i++) {
+                        const curve = allCurves[i];
+                        curvesData.push({
+                            x: Array.from({ length: curve.length }, (_, j) => j + 1),
+                            y: curve,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `模拟曲线${i+1}`,
+                            line: { width: 1 }
+                        });
+                    }
+                    
+                    const curvesLayout = {
+                        title: '模拟收益曲线',
+                        xaxis: { title: '系列编号' },
+                        yaxis: { title: '累计盈亏' },
+                        showlegend: false,
+                        grid: { rows: 1, columns: 1 }
+                    };
+                    
+                    Plotly.newPlot('curves-chart', curvesData, curvesLayout);
+                    
+                    // 绘制目标概率图
+                    const probData = [{
+                        x: xYears,
+                        y: yProbs,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        marker: { size: 8 }
+                    }];
+                    
+                    const probLayout = {
+                        title: `不同年数下达到目标收益的概率变化`,
+                        xaxis: { 
+                            title: '年数',
+                            range: [0, 5]
+                        },
+                        yaxis: { 
+                            title: `累计收益 ≥ ${target} 元的概率`,
+                            range: [0, 1]
+                        }
+                    };
+                    
+                    Plotly.newPlot('probability-chart', probData, probLayout);
+                    
+                    // 更新统计数据
+                    updateStats(stats);
+                    
+                    // 更新结论
+                    document.getElementById('conclusion').innerHTML = conclusion;
+                    
+                    // 显示结果
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('results').style.display = 'block';
+                } catch (error) {
+                    console.error('模拟过程中发生错误:', error);
+                    alert('模拟过程中发生错误: ' + error.message);
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 100);
+        }
+
+        // 更新统计数据
+        function updateStats(stats) {
+            // 更新总体统计
+            const overallStatsContainer = document.getElementById('overall-stats');
+            overallStatsContainer.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-label">平均最终盈利</div>
+                    <div class="stat-value">${stats.overall.avgFinalProfit.toFixed(2)}元</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">最高盈利</div>
+                    <div class="stat-value">${stats.overall.maxFinalProfit.toFixed(2)}元</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">最低盈利</div>
+                    <div class="stat-value">${stats.overall.minFinalProfit.toFixed(2)}元</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">盈利概率</div>
+                    <div class="stat-value">${stats.overall.profitablePercent.toFixed(2)}%</div>
+                </div>
+            `;
+            
+            // 更新系列类型统计
+            const seriesTypeStatsContainer = document.getElementById('series-type-stats');
+            seriesTypeStatsContainer.innerHTML = '';
+            
+            for (const type in stats.seriesType) {
+                const typeData = stats.seriesType[type];
+                seriesTypeStatsContainer.innerHTML += `
+                    <div class="stat-item">
+                        <div class="stat-label">${type}占比</div>
+                        <div class="stat-value">${typeData.percent.toFixed(2)}%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">${type}平均盈利</div>
+                        <div class="stat-value">${typeData.avgProfit.toFixed(2)}元</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">${type}总盈利</div>
+                        <div class="stat-value">${typeData.totalProfit.toFixed(2)}元</div>
+                    </div>
+                `;
+            }
+            
+            // 更新销售渠道统计
+            const channelStatsContainer = document.getElementById('channel-stats');
+            channelStatsContainer.innerHTML = '';
+            
+            for (const channel in stats.channel) {
+                const channelData = stats.channel[channel];
+                channelStatsContainer.innerHTML += `
+                    <div class="stat-item">
+                        <div class="stat-label">${channelData.name}箱数占比</div>
+                        <div class="stat-value">${channelData.boxPercent.toFixed(2)}%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">${channelData.name}收入占比</div>
+                        <div class="stat-value">${channelData.revenuePercent.toFixed(2)}%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">${channelData.name}平均售价</div>
+                        <div class="stat-value">${channelData.avgPrice.toFixed(2)}元</div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
