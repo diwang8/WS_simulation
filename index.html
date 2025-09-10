@@ -600,7 +600,7 @@
                 } else if (tabId === 'probability-tab') {
                     Plotly.Plots.resize(document.getElementById('probability-chart'));
                 }
-            }, 5000);
+            }, 100);
         }
 
         // 三角分布采样函数
@@ -1077,7 +1077,7 @@
                     
                     setTimeout(() => {
                         resizeAndRedrawPlotlyChart('curves-chart', curvesData, curvesLayout);
-                    }, 5000);
+                    }, 100);
                     
                     // 绘制目标概率图
                     const probData = [{
@@ -1102,7 +1102,7 @@
 
                     setTimeout(() => {
                         resizeAndRedrawPlotlyChart('probability-chart', probData, probLayout);
-                    }, 5000);
+                    }, 100);
                     
                     // 更新统计数据
                     updateStats(stats);
