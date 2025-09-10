@@ -989,7 +989,7 @@
         function resizeAndRedrawPlotlyChart(chartId, data, layoutBase) {
             const container = document.getElementById(chartId).parentElement;
             const width = container.clientWidth;
-            const height = width * 0.66;
+            const height = Math.max(350, width * 0.66);
 
             const layout = {
                 ...layoutBase,
