@@ -599,7 +599,7 @@
                 } else if (tabId === 'probability-tab') {
                     Plotly.Plots.resize(document.getElementById('probability-chart'));
                 }
-            }, 1000);
+            }, 100);
         }
 
         // 三角分布采样函数
@@ -985,6 +985,19 @@
             return conclusion;
         }
 
+        function resizeAndRedrawPlotlyChart(chartId, data, layoutBase) {
+            const container = document.getElementById(chartId).parentElement;
+            const width = container.clientWidth;
+            const height = width * 0.66;
+
+            const layout = {
+                ...layoutBase,
+                width,
+                height
+            };
+
+            Plotly.newPlot(chartId, data, layout, { responsive: true });
+        }
         // 运行模拟
         function runSimulation() {
             // 显示加载动画
@@ -1060,19 +1073,10 @@
                         showlegend: false,
                         grid: { rows: 1, columns: 1 }
                     };
+                    
                     setTimeout(() => {
-                        const curvesContainer = document.getElementById('curves-chart').parentElement;
-                        const width = curvesContainer.clientWidth;
-                        const height = width;
-
-                        const layout = {
-                            ...curvesLayout,
-                            width: width,
-                            height: height
-                        };
-
-                        Plotly.newPlot('curves-chart', curvesData, layout, { responsive: true });
-                    }, 1000);
+                        resizeAndRedrawPlotlyChart('curves-chart', curvesData, curvesLayout);
+                    }, 100);
                     
                     // 绘制目标概率图
                     const probData = [{
@@ -1096,18 +1100,8 @@
                     };
 
                     setTimeout(() => {
-                        const probContainer = document.getElementById('probability-chart').parentElement;
-                        const width = probContainer.clientWidth;
-                        const height = width;
-
-                        const layout = {
-                            ...probLayout,
-                            width: width,
-                            height: height
-                        };
-
-                        Plotly.newPlot('probability-chart', probData, layout, { responsive: true });
-                    }, 1000);
+                        resizeAndRedrawPlotlyChart('probability-chart', probData, probLayout);
+                    }, 100);
                     
                     // 更新统计数据
                     updateStats(stats);
