@@ -101,9 +101,7 @@
         }
         .chart-container {
             width: 100%;
-            aspect-ratio: 4 / 3;
             max-width: 100%;
-            overflow-x: auto;
         }
         .stats-container {
             background-color: #f9f9f9;
@@ -1045,13 +1043,20 @@
                         });
                     }
                     
+                    const container = document.getElementById('curves-chart').parentElement;
+                    const width = container.clientWidth;
+                    const height = width * 0.66;
+                    
                     const curvesLayout = {
                         title: '模拟收益曲线',
                         xaxis: { title: '系列编号' },
                         yaxis: { title: '累计盈亏' },
                         showlegend: false,
                         grid: { rows: 1, columns: 1 }
+                        width: width,
+                        height: height
                     };
+                
                     setTimeout(() => {
                         Plotly.newPlot('curves-chart', curvesData, curvesLayout, { responsive: true });
                     }, 100);
@@ -1064,7 +1069,10 @@
                         mode: 'lines+markers',
                         marker: { size: 8 }
                     }];
-                    
+
+                    const probContainer = document.getElementById('probability-chart').parentElement;
+                    const probWidth = probContainer.clientWidth;
+                    const probHeight = probWidth * 0.66;
                     const probLayout = {
                         title: `不同年数下达到目标收益的概率变化`,
                         xaxis: { 
@@ -1075,6 +1083,8 @@
                             title: `累计收益 ≥ ${target} 元的概率`,
                             range: [0, 1]
                         }
+                        width: probWidth,
+                        height: probHeight
                     };
 
                     setTimeout(() => {
